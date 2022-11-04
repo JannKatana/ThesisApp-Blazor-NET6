@@ -9,7 +9,7 @@ namespace ThesisApp.API.Data
         public bool IsActive { get; set; }
 
         [ForeignKey(nameof(RoomId))]
-        public int RoomId { get; set; }
+        public int? RoomId { get; set; }
         public Room Room { get; set; }
 
         public IList<User> Users { get; set; }
