@@ -5,14 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using ThesisApp.API.Data;
 
 #nullable disable
 
 namespace ThesisApp.API.Migrations
 {
     [DbContext(typeof(ThesisAppDbContext))]
-    [Migration("20221104002022_AddedNullableMembersInDevice")]
-    partial class AddedNullableMembersInDevice
+    [Migration("20221105161521_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -22,36 +23,6 @@ namespace ThesisApp.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("DeviceUser", b =>
-                {
-                    b.Property<int>("DevicesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DevicesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("DeviceUser");
-                });
-
-            modelBuilder.Entity("RoomUser", b =>
-                {
-                    b.Property<int>("RoomsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("RoomsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("RoomUser");
-                });
 
             modelBuilder.Entity("ThesisApp.API.Data.Device", b =>
                 {
@@ -107,6 +78,37 @@ namespace ThesisApp.API.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ThesisApp.API.Data.DeviceUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("DeviceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeviceUsers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DeviceId = 1,
+                            UserId = 1
+                        });
+                });
+
             modelBuilder.Entity("ThesisApp.API.Data.Room", b =>
                 {
                     b.Property<int>("Id")
@@ -118,7 +120,12 @@ namespace ThesisApp.API.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Rooms");
 
@@ -143,6 +150,9 @@ namespace ThesisApp.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int?>("DeviceId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
@@ -160,6 +170,8 @@ namespace ThesisApp.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DeviceId");
+
                     b.ToTable("Users");
 
                     b.HasData(
@@ -172,36 +184,6 @@ namespace ThesisApp.API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DeviceUser", b =>
-                {
-                    b.HasOne("ThesisApp.API.Data.Device", null)
-                        .WithMany()
-                        .HasForeignKey("DevicesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ThesisApp.API.Data.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("RoomUser", b =>
-                {
-                    b.HasOne("ThesisApp.API.Data.Room", null)
-                        .WithMany()
-                        .HasForeignKey("RoomsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ThesisApp.API.Data.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ThesisApp.API.Data.Device", b =>
                 {
                     b.HasOne("ThesisApp.API.Data.Room", "Room")
@@ -211,9 +193,54 @@ namespace ThesisApp.API.Migrations
                     b.Navigation("Room");
                 });
 
+            modelBuilder.Entity("ThesisApp.API.Data.DeviceUser", b =>
+                {
+                    b.HasOne("ThesisApp.API.Data.Device", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ThesisApp.API.Data.User", "User")
+                        .WithMany("DeviceUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Device");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ThesisApp.API.Data.Room", b =>
+                {
+                    b.HasOne("ThesisApp.API.Data.User", null)
+                        .WithMany("Rooms")
+                        .HasForeignKey("UserId");
+                });
+
+            modelBuilder.Entity("ThesisApp.API.Data.User", b =>
+                {
+                    b.HasOne("ThesisApp.API.Data.Device", null)
+                        .WithMany("Users")
+                        .HasForeignKey("DeviceId");
+                });
+
+            modelBuilder.Entity("ThesisApp.API.Data.Device", b =>
+                {
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("ThesisApp.API.Data.Room", b =>
                 {
                     b.Navigation("Devices");
+                });
+
+            modelBuilder.Entity("ThesisApp.API.Data.User", b =>
+                {
+                    b.Navigation("DeviceUsers");
+
+                    b.Navigation("Rooms");
                 });
 #pragma warning restore 612, 618
         }

@@ -38,7 +38,7 @@ namespace ThesisApp.API.Controllers
                 return NotFound();
             }
 
-            return device;
+            return Ok(device);
         }
 
         // PUT: api/Devices/5
@@ -59,7 +59,7 @@ namespace ThesisApp.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!DeviceExists(id))
+                if (!await DeviceExists(id))
                 {
                     return NotFound();
                 }
@@ -77,10 +77,10 @@ namespace ThesisApp.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Device>> PostDevice(Device device)
         {
-            _context.Devices.Add(device);
+            await _context.Devices.AddAsync(device);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDevice", new { id = device.Id }, device);
+            return CreatedAtAction(nameof(GetDevice), new { id = device.Id }, device);
         }
 
         // DELETE: api/Devices/5
@@ -99,9 +99,9 @@ namespace ThesisApp.API.Controllers
             return NoContent();
         }
 
-        private bool DeviceExists(int id)
+        private async Task<bool> DeviceExists(int id)
         {
-            return _context.Devices.Any(e => e.Id == id);
+            return await _context.Devices.AnyAsync(e => e.Id == id);
         }
     }
 }

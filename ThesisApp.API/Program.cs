@@ -1,3 +1,5 @@
+using ThesisApp.API.Configurations;
+using ThesisApp.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -7,7 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("ThesisAppDbConnectionString");
 builder.Services.AddDbContext<ThesisAppDbContext>(options => options.UseSqlServer(connectionString));
 
+builder.Services.AddAutoMapper(typeof(MapperConfig));
+
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

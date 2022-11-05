@@ -38,7 +38,7 @@ namespace ThesisApp.API.Controllers
                 return NotFound();
             }
 
-            return room;
+            return Ok(room);
         }
 
         // PUT: api/Rooms/5
@@ -59,7 +59,7 @@ namespace ThesisApp.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!RoomExists(id))
+                if (!await RoomExists(id))
                 {
                     return NotFound();
                 }
@@ -77,10 +77,10 @@ namespace ThesisApp.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Room>> PostRoom(Room room)
         {
-            _context.Rooms.Add(room);
+            await _context.Rooms.AddAsync(room);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetRoom", new { id = room.Id }, room);
+            return CreatedAtAction(nameof(GetRoom), new { id = room.Id }, room);
         }
 
         // DELETE: api/Rooms/5
@@ -99,9 +99,9 @@ namespace ThesisApp.API.Controllers
             return NoContent();
         }
 
-        private bool RoomExists(int id)
+        private async Task<bool> RoomExists(int id)
         {
-            return _context.Rooms.Any(e => e.Id == id);
+            return await _context.Rooms.AnyAsync(e => e.Id == id);
         }
     }
 }
