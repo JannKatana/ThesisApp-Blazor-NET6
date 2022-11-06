@@ -10,8 +10,8 @@ namespace ThesisApp.API.Data
 
         [ForeignKey(nameof(RoomId))]
         public int? RoomId { get; set; }
-        public Room RoomLocation { get; set; }
+        public Room Room { get; set; }
 
-        public IList<User> Users { get; set; }
+        public IList<DeviceUser> AssignedUsers { get; set; }
     }
 }

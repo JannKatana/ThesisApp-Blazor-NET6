@@ -11,14 +11,22 @@ namespace ThesisApp.API.Configurations
     {
         public MapperConfig()
         {
-            CreateMap<UserCreateDto, User>().ReverseMap();
-            CreateMap<UserReadOnlyDto, User>().ReverseMap();
-            CreateMap<UserUpdateDto, User>().ReverseMap();
+            CreateMap<User, UserCreateDto>().ReverseMap();
+            CreateMap<User, UserDetailsDto>().ReverseMap();
+            CreateMap<User, UserReadOnlyDto>().ReverseMap();
+            CreateMap<User, UserUpdateDto>().ReverseMap();
 
-            CreateMap<DeviceReadOnlyDto, Device>().ReverseMap();
-            CreateMap<AssignedDeviceDto, DeviceUser>().ReverseMap();
-            
-            CreateMap<RoomLocationDto, Room>().ReverseMap();
+            CreateMap<DeviceUser, AssignedDeviceDto>().ReverseMap();
+            CreateMap<DeviceUser, AssignedUsersDto>().ReverseMap();
+
+            CreateMap<Device, DeviceCreateDto>().ReverseMap();
+            CreateMap<Device, DeviceDetailsDto>()
+                .ForMember(deviceDto => deviceDto.Room, device => device.MapFrom(map => map.Room.Name))
+                .ReverseMap();
+            CreateMap<Device, DeviceReadOnlyDto>()
+                .ForMember(deviceDto => deviceDto.Room, device => device.MapFrom(map => map.Room.Name));
+            CreateMap<Device, DeviceUpdateDto>().ReverseMap();
+
         }
     }
 }

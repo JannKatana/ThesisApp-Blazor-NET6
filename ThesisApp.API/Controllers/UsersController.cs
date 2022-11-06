@@ -47,13 +47,13 @@ namespace ThesisApp.API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserReadOnlyDto>> GetUser(int id)
+        public async Task<ActionResult<UserDetailsDto>> GetUser(int id)
         {
 
             var user = await _context.Users
                 .Include(u => u.AssignedDevices)
                 .ThenInclude(du => du.Device)
-                .ThenInclude(d => d.RoomLocation)
+                .ThenInclude(d => d.Room)
                 .FirstOrDefaultAsync(q => q.Id == id);
     
 
@@ -62,7 +62,7 @@ namespace ThesisApp.API.Controllers
                 return NotFound();
             }
 
-            var userDto = _mapper.Map<UserReadOnlyDto>(user);
+            var userDto = _mapper.Map<UserDetailsDto>(user);
             return Ok(userDto);
 
         }

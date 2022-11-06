@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThesisApp.API.Data;
+using ThesisApp.API.Models.Device;
 
 namespace ThesisApp.API.Controllers
 {
@@ -14,23 +17,52 @@ namespace ThesisApp.API.Controllers
     public class DevicesController : ControllerBase
     {
         private readonly ThesisAppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public DevicesController(ThesisAppDbContext context)
+        public DevicesController(ThesisAppDbContext context, IMapper mapper)
         {
             _context = context;
+            this._mapper = mapper;
         }
 
         // GET: api/Devices
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Device>>> GetDevices()
+        public async Task<ActionResult<IEnumerable<DeviceReadOnlyDto>>> GetDevices()
         {
-            return await _context.Devices.ToListAsync();
+            var devicesDtos = await _context.Devices.ProjectTo<DeviceReadOnlyDto>(_mapper.ConfigurationProvider).ToListAsync();
+            return devicesDtos;
         }
 
         // GET: api/Devices/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Device>> GetDevice(int id)
+        public async Task<ActionResult<DeviceDetailsDto>> GetDevice(int id)
         {
+            var devices = await _context.Devices
+                .Include(q => q.AssignedUsers)
+                .ThenInclude(q => q.User)
+                .Include(q => q.Room)
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            var deviceDto = _mapper.Map<DeviceDetailsDto>(devices);
+
+            if (deviceDto == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(deviceDto);
+        }
+
+        // PUT: api/Devices/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutDevice(int id, DeviceUpdateDto deviceDto)
+        {
+            if (id != deviceDto.Id)
+            {
+                return BadRequest();
+            }
+
             var device = await _context.Devices.FindAsync(id);
 
             if (device == null)
@@ -38,19 +70,7 @@ namespace ThesisApp.API.Controllers
                 return NotFound();
             }
 
-            return Ok(device);
-        }
-
-        // PUT: api/Devices/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutDevice(int id, Device device)
-        {
-            if (id != device.Id)
-            {
-                return BadRequest();
-            }
-
+            _mapper.Map(deviceDto, device);
             _context.Entry(device).State = EntityState.Modified;
 
             try
@@ -75,8 +95,10 @@ namespace ThesisApp.API.Controllers
         // POST: api/Devices
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Device>> PostDevice(Device device)
+        public async Task<ActionResult<DeviceCreateDto>> PostDevice(DeviceCreateDto deviceDto)
         {
+            var device = _mapper.Map<Device>(deviceDto);
+
             await _context.Devices.AddAsync(device);
             await _context.SaveChangesAsync();
 

@@ -10,7 +10,5 @@ namespace ThesisApp.API.Models.User
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string ImageUrl { get; set; }
-
-        public IList<AssignedDeviceDto> AssignedDevices { get; set; }
     }
 }
