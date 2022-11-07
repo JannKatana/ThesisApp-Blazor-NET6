@@ -27,6 +27,12 @@ namespace ThesisApp.API.Configurations
                 .ForMember(deviceDto => deviceDto.Room, device => device.MapFrom(map => map.Room.Name));
             CreateMap<Device, DeviceUpdateDto>().ReverseMap();
 
+            CreateMap<Room, RoomCreateDto>().ReverseMap();
+            CreateMap<Room, RoomDetailsDto>()
+                .ForMember(detail => detail.InstalledDevices, room => room.MapFrom(map => map.Devices));
+            CreateMap<Room, RoomReadOnlyDto>().ReverseMap();
+            CreateMap<Room, RoomUpdateDto>().ReverseMap();
+
         }
     }
 }

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThesisApp.API.Data;
+using ThesisApp.API.Models.Room;
 
 namespace ThesisApp.API.Controllers
 {
@@ -14,23 +16,50 @@ namespace ThesisApp.API.Controllers
     public class RoomsController : ControllerBase
     {
         private readonly ThesisAppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public RoomsController(ThesisAppDbContext context)
+        public RoomsController(ThesisAppDbContext context, IMapper mapper)
         {
             _context = context;
+            this._mapper = mapper;
         }
 
         // GET: api/Rooms
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Room>>> GetRooms()
+        public async Task<ActionResult<IEnumerable<RoomReadOnlyDto>>> GetRooms()
         {
-            return await _context.Rooms.ToListAsync();
+            var rooms = await _context.Rooms.ToListAsync();
+            var roomDtos = _mapper.Map<IEnumerable<RoomReadOnlyDto>>(rooms);
+            return Ok(roomDtos);
         }
 
         // GET: api/Rooms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Room>> GetRoom(int id)
+        public async Task<ActionResult<RoomDetailsDto>> GetRoom(int id)
         {
+            var room = await _context.Rooms
+                .Include(q => q.Devices)
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            var roomDto = _mapper.Map<RoomDetailsDto>(room);
+            return Ok(roomDto);
+        }
+
+        // PUT: api/Rooms/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutRoom(int id, RoomUpdateDto roomDto)
+        {
+            if (id != roomDto.Id)
+            {
+                return BadRequest();
+            }
+
             var room = await _context.Rooms.FindAsync(id);
 
             if (room == null)
@@ -38,19 +67,7 @@ namespace ThesisApp.API.Controllers
                 return NotFound();
             }
 
-            return Ok(room);
-        }
-
-        // PUT: api/Rooms/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutRoom(int id, Room room)
-        {
-            if (id != room.Id)
-            {
-                return BadRequest();
-            }
-
+            _mapper.Map(roomDto, room);
             _context.Entry(room).State = EntityState.Modified;
 
             try
@@ -75,8 +92,10 @@ namespace ThesisApp.API.Controllers
         // POST: api/Rooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Room>> PostRoom(Room room)
+        public async Task<ActionResult<Room>> PostRoom(RoomCreateDto roomDto)
         {
+            var room = _mapper.Map<Room>(roomDto);
+
             await _context.Rooms.AddAsync(room);
             await _context.SaveChangesAsync();
 

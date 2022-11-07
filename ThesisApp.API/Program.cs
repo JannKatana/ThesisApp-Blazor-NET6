@@ -7,7 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("ThesisAppDbConnectionString");
-builder.Services.AddDbContext<ThesisAppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ThesisAppDbContext>(options => 
+    options.UseSqlServer(connectionString)
+);
 
 builder.Services.AddAutoMapper(typeof(MapperConfig));
 
